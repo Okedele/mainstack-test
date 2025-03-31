@@ -338,7 +338,6 @@ export default class TransactionService {
     data?: any;
   }> {
     try {
-      console.log("first", userId, transactionId);
       const transaction = await Transaction.findOne({
         _id: transactionId,
         userId: userId,

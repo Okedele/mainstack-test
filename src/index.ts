@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import connectDB from './config/db.config';
 import ExpressMongoSanitize from 'express-mongo-sanitize';
 import { AuthRoutes } from './routes/auth.routes';
+import { AccountRoutes } from './routes/account.routes';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use(ExpressMongoSanitize()); // Prevent NoSQL injection
 connectDB();
 
 AuthRoutes(app)
+AccountRoutes(app)
 
 // Basic route for testing
 app.get('/', (req, res) => {

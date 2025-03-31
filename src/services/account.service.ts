@@ -74,4 +74,28 @@ export default class AccountService {
       };
     }
   }
+
+  public async getAccount(userId: string, accountId: string): Promise<{
+    status: boolean;
+    message: string;
+    statusCode?: number;
+    data?: any;
+  }> {
+    try {
+      const account = await Account.findOne({ userId: userId, _id: accountId });
+
+      return {
+        status: true,
+        data: account,
+        statusCode: HttpStatusCodes.OK,
+        message: "Account fetched successfully!",
+      };
+    } catch (err: any) {
+      return {
+        status: false,
+        message: err.message,
+        statusCode: err.status || HttpStatusCodes.SERVER_ERROR,
+      };
+    }
+  }
 }

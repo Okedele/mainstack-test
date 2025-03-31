@@ -65,4 +65,29 @@ export default class AccountController extends Controller {
       return this.sendServerError(res, err.message);
     }
   }
+
+  public async getAccount(req: Request, res: Response): Promise<any> {
+    try {
+      const userId = (req as any).user.id;
+      const accountId = req.params.id as string
+
+      const account = await this.accountService.getAccount(userId, accountId);
+      if (!account.status) {
+        return this.sendErrorResponse(
+          res,
+          account.message,
+          account.statusCode
+        );
+      }
+
+      return this.sendSuccessResponse(
+        res,
+        account.message,
+        account.data,
+        account.statusCode
+      );
+    } catch (err: any) {
+      return this.sendServerError(res, err.message);
+    }
+  }
 }

@@ -3,7 +3,9 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from "dotenv";
-import connectDB from './config/db';
+import connectDB from './config/db.config';
+import ExpressMongoSanitize from 'express-mongo-sanitize';
+import { AuthRoutes } from './routes/auth.routes';
 
 dotenv.config();
 
@@ -13,9 +15,12 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+app.use(ExpressMongoSanitize()); // Prevent NoSQL injection
 
 //Connect to MongoDB database
 connectDB();
+
+AuthRoutes(app)
 
 // Basic route for testing
 app.get('/', (req, res) => {

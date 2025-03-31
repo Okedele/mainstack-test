@@ -4,10 +4,13 @@ import HttpStatusCodes from "../utils/HttpStatusCodes";
 import Transaction from "../models/Transaction";
 
 export default class TransactionService {
-  public async creditTransaction(payload: {
-    accountId: string;
-    amount: number;
-  }): Promise<{
+  public async creditTransaction(
+    payload: {
+      accountId: string;
+      amount: number;
+    },
+    userId: string
+  ): Promise<{
     status: boolean;
     message: string;
     statusCode?: number;
@@ -18,7 +21,10 @@ export default class TransactionService {
     try {
       const { accountId, amount } = payload;
 
-      const account = await Account.findById(accountId).session(session);
+      const account = await Account.findOne({
+        userId: userId,
+        _id: accountId,
+      }).session(session);
 
       if (!account) {
         await session.abortTransaction();
@@ -41,6 +47,7 @@ export default class TransactionService {
             amount,
             currency: account.currency,
             toAccount: account._id,
+            userId: userId,
           },
         ],
         { session }
@@ -66,10 +73,13 @@ export default class TransactionService {
     }
   }
 
-  public async debitTransaction(payload: {
-    accountId: string;
-    amount: number;
-  }): Promise<{
+  public async debitTransaction(
+    payload: {
+      accountId: string;
+      amount: number;
+    },
+    userId: string
+  ): Promise<{
     status: boolean;
     message: string;
     statusCode?: number;
@@ -80,7 +90,10 @@ export default class TransactionService {
     try {
       const { accountId, amount } = payload;
 
-      const account = await Account.findById(accountId).session(session);
+      const account = await Account.findOne({
+        userId: userId,
+        _id: accountId,
+      }).session(session);
 
       if (!account) {
         await session.abortTransaction();
@@ -112,6 +125,7 @@ export default class TransactionService {
             amount,
             currency: account.currency,
             fromAccount: account._id,
+            userId: userId,
           },
         ],
         { session }
@@ -137,11 +151,14 @@ export default class TransactionService {
     }
   }
 
-  public async transferTransaction(payload: {
-    fromAccountId: string;
-    toAccountId: string;
-    amount: number;
-  }): Promise<{
+  public async transferTransaction(
+    payload: {
+      fromAccountId: string;
+      toAccountId: string;
+      amount: number;
+    },
+    userId: string
+  ): Promise<{
     status: boolean;
     message: string;
     statusCode?: number;
@@ -152,8 +169,10 @@ export default class TransactionService {
     try {
       const { fromAccountId, toAccountId, amount } = payload;
 
-      const fromAccount =
-        await Account.findById(fromAccountId).session(session);
+      const fromAccount = await Account.findOne({
+        userId: userId,
+        _id: fromAccountId,
+      }).session(session);
       const toAccount = await Account.findById(toAccountId).session(session);
 
       if (!fromAccount) {
@@ -208,6 +227,7 @@ export default class TransactionService {
             currency: fromAccount.currency,
             fromAccount: fromAccount._id,
             toAccount: toAccount._id,
+            userId: userId,
           },
         ],
         { session }
@@ -222,6 +242,7 @@ export default class TransactionService {
             currency: fromAccount.currency,
             fromAccount: fromAccount._id,
             toAccount: toAccount._id,
+            userId: userId,
           },
         ],
         { session }
@@ -239,6 +260,58 @@ export default class TransactionService {
     } catch (err: any) {
       await session.abortTransaction();
       session.endSession();
+      return {
+        status: false,
+        message: err.message,
+        statusCode: err.status || HttpStatusCodes.SERVER_ERROR,
+      };
+    }
+  }
+
+  public async getUserTransactions(
+    userId: string,
+    page: number,
+    limit: number,
+    type: string
+  ): Promise<{
+    status: boolean;
+    message: string;
+    statusCode?: number;
+    data?: any;
+  }> {
+    try {
+      const skip = (page - 1) * limit;
+
+      const query: any = { userId };
+      if (type) {
+        query.type = type;
+      }
+
+      const transactions = await Transaction.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+
+      const total = await Transaction.countDocuments(query);
+
+      const data = {
+        transactions,
+        meta: {
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          totalRecords: total,
+        },
+      };
+
+      return {
+        status: true,
+        data,
+        statusCode: HttpStatusCodes.OK,
+        message: "User transactions fetched successfully!",
+      };
+    } catch (err: any) {
       return {
         status: false,
         message: err.message,

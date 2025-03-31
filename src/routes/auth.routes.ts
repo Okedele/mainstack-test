@@ -4,7 +4,7 @@ import { body } from "express-validator";
 
 export const AuthRoutes = (Route: Application) => {
   Route.post(
-    "/api/register",
+    "/api/auth/register",
     [
       body("firstName").trim().isLength({ min: 3 }).escape(),
       body("lastName").trim().isLength({ min: 3 }).escape(),
@@ -17,7 +17,7 @@ export const AuthRoutes = (Route: Application) => {
   );
 
   Route.post(
-    "/api/login",
+    "/api/auth/login",
     [
       body("email").isEmail().normalizeEmail(),
       body("password").isLength({ min: 6 }),

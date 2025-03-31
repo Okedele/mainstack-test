@@ -64,7 +64,7 @@ export default class AccountService {
         status: true,
         data: accounts,
         statusCode: HttpStatusCodes.OK,
-        message: "User accounts successfully!",
+        message: "User accounts fetched successfully!",
       };
     } catch (err: any) {
       return {

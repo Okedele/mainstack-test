@@ -7,6 +7,7 @@ const TransactionSchema = new mongoose.Schema(
     currency: { type: String, required: true, enum: ['USD', 'NGN'] }, // Extend as needed
     fromAccount: { type: mongoose.Schema.Types.ObjectId, ref: 'Account' },
     toAccount: { type: mongoose.Schema.Types.ObjectId, ref: 'Account' }, 
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   },
   { timestamps: true }
 );

@@ -1,5 +1,5 @@
 import { Application, Request, Response } from "express";
-import { body } from "express-validator";
+import { body, query } from "express-validator";
 import authMiddleware from "../middleware/auth.middleware";
 import TransactionController from "../controllers/transaction.controller";
 
@@ -27,11 +27,29 @@ export const TransactionRoutes = (Route: Application) => {
     }
   );
 
-  Route.get(
+  Route.post(
     "/api/transaction/transfer",
     authMiddleware as any,
+    [
+      body('fromAccountId').isMongoId(),
+      body('toAccountId').isMongoId(),
+      body('amount').isFloat({ min: 1 }),
+    ],
     (req: Request, res: Response) => {
       return new TransactionController().transferTransaction(req, res);
+    }
+  );
+
+  Route.get(
+    "/api/transactions",
+    authMiddleware as any,
+    [
+      query('page').optional().isInt({ min: 1 }).toInt(),
+      query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
+      query('type').optional().isIn(['credit', 'debit']),
+    ],
+    (req: Request, res: Response) => {
+      return new TransactionController().getUserTransactions(req, res);
     }
   );
 };

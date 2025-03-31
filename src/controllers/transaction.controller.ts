@@ -118,12 +118,50 @@ export default class TransactionController extends Controller {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const type = req.query.type as string;
+      const accountId = req.query.accountId as string;
+      const query = {
+        page,
+        limit,
+        type,
+        accountId,
+      };
 
       const transaction = await this.transactionService.getUserTransactions(
         userId,
-        page,
-        limit,
-        type
+        query
+      );
+      if (!transaction.status) {
+        return this.sendErrorResponse(
+          res,
+          transaction.message,
+          transaction.statusCode
+        );
+      }
+
+      return this.sendSuccessResponse(
+        res,
+        transaction.message,
+        transaction.data,
+        transaction.statusCode
+      );
+    } catch (err: any) {
+      return this.sendServerError(res, err.message);
+    }
+  }
+
+  public async getTransaction(req: Request, res: Response): Promise<any> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendErrorResponse(res, errors.array(), 400);
+      }
+
+      const userId = (req as any).user.id;
+      const transactionId = req.params.id as string
+
+      const transaction = await this.transactionService.getTransaction(
+        userId,
+        transactionId
       );
       if (!transaction.status) {
         return this.sendErrorResponse(

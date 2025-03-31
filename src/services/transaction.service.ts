@@ -270,9 +270,12 @@ export default class TransactionService {
 
   public async getUserTransactions(
     userId: string,
-    page: number,
-    limit: number,
-    type: string
+    query: {
+      page: number;
+      limit: number;
+      type: string;
+      accountId: string;
+    }
   ): Promise<{
     status: boolean;
     message: string;
@@ -280,20 +283,25 @@ export default class TransactionService {
     data?: any;
   }> {
     try {
+      const { page, limit, type, accountId } = query;
       const skip = (page - 1) * limit;
 
-      const query: any = { userId };
+      const queries: any = { userId };
       if (type) {
-        query.type = type;
+        queries.type = type;
       }
 
-      const transactions = await Transaction.find(query)
+      if (accountId) {
+        queries.$or = [{ fromAccount: accountId }, { toAccount: accountId }];
+      }
+
+      const transactions = await Transaction.find(queries)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean();
 
-      const total = await Transaction.countDocuments(query);
+      const total = await Transaction.countDocuments(queries);
 
       const data = {
         transactions,
@@ -310,6 +318,37 @@ export default class TransactionService {
         data,
         statusCode: HttpStatusCodes.OK,
         message: "User transactions fetched successfully!",
+      };
+    } catch (err: any) {
+      return {
+        status: false,
+        message: err.message,
+        statusCode: err.status || HttpStatusCodes.SERVER_ERROR,
+      };
+    }
+  }
+
+  public async getTransaction(
+    userId: string,
+    transactionId: string
+  ): Promise<{
+    status: boolean;
+    message: string;
+    statusCode?: number;
+    data?: any;
+  }> {
+    try {
+      console.log("first", userId, transactionId);
+      const transaction = await Transaction.findOne({
+        _id: transactionId,
+        userId: userId,
+      });
+
+      return {
+        status: true,
+        data: transaction,
+        statusCode: HttpStatusCodes.OK,
+        message: "Transaction fetched successfully!",
       };
     } catch (err: any) {
       return {

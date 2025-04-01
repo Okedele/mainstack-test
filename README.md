@@ -118,7 +118,7 @@ npm run test
    ```
 2. **Run with PM2** (recommended for production):
    ```sh
-   pm2 start dist/main.js --name banking-api
+   pm2 start dist/index.js --name banking-api
    ```
 
 ---

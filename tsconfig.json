@@ -112,4 +112,6 @@
     "outDir": "./dist",
     "rootDir": "./src",
   },
+  "include": ["src"],
+  "exclude": ["node_modules", "tests", "jest.setup.ts"]
 }
